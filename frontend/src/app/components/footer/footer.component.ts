@@ -20,7 +20,6 @@ import { RouterModule } from '@angular/router';
             <ul>
               <li><a routerLink="/">Home</a></li>
               <li><a routerLink="/properties">Properties</a></li>
-              <li><a routerLink="/add-property">Add Property</a></li>
               <li><a routerLink="/contact">Contact</a></li>
             </ul>
           </div>

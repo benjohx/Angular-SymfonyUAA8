@@ -35,4 +35,9 @@ export class AuthService {
   isLoggedIn(): boolean {
     return !!this.currentUserSubject.value;
   }
+
+  // AuthService
+public setCurrentUser(user: User | null): void {
+  this.currentUserSubject.next(user);
+}
 }

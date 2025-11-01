@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
-import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/property.model';
 
 @Component({
@@ -56,20 +56,23 @@ import { User } from '../../models/property.model';
 export class HeaderComponent {
   currentUser$: Observable<User | null>;
 
-  constructor(private userService: UserService, private router: Router) {
-    this.currentUser$ = this.userService.getCurrentUser();
-  }
+  constructor(private authService: AuthService, private router: Router) {
+  this.currentUser$ = this.authService.currentUser$;
+}
 
   goHome(): void { this.router.navigate(['/']); }
-  logout(): void {
-  this.userService.logout().subscribe({
+ logout(): void {
+  this.authService.logout().subscribe({
     next: () => {
       console.log('Logout successful');
+      // Reset Angular user state so UI updates immediately
+      this.authService.setCurrentUser(null);
       this.router.navigate(['/']);
     },
     error: (err: any) => {
       console.error('Logout failed', err);
-      this.router.navigate(['/']); // still redirect
+      this.authService.setCurrentUser(null);
+      this.router.navigate(['/']);
     }
   });
 }

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -53,7 +53,7 @@ export class RegisterComponent {
   loading = false;
   error: string | null = null;
 
-  constructor(private userService: UserService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit(): void {
     if (!this.name || !this.email || !this.password) return;
@@ -61,7 +61,7 @@ export class RegisterComponent {
     this.loading = true;
     this.error = null;
 
-    this.userService.register(this.email, this.name, this.password).subscribe({
+    this.authService.register(this.name, this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
         this.router.navigate(['/']); // Redirect to homepage or dashboard
