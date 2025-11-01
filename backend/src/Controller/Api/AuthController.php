@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 #[Route('/api')]
 class AuthController extends AbstractController
@@ -19,15 +21,18 @@ class AuthController extends AbstractController
     private EntityManagerInterface $em;
     private UserRepository $userRepository;
     private UserPasswordHasherInterface $passwordHasher;
+    private MailerInterface $mailer;
 
     public function __construct(
         EntityManagerInterface $em,
         UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
+        MailerInterface $mailer
     ) {
         $this->em = $em;
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
+        $this->mailer = $mailer;
     }
 
     // ----------------- REGISTER -----------------
@@ -56,11 +61,32 @@ class AuthController extends AbstractController
         $this->em->persist($user);
         $this->em->flush();
 
-        return $this->json($user->toArray(), Response::HTTP_CREATED);
-    }
+        // ------------------- SEND EMAIL -------------------
+        $emailMessage = (new Email())
+            ->from('noreply@easyhouse.be')
+            ->to($user->getEmail())
+            ->subject('Welcome to EasyHouse!')
+            ->html("
+        <html>
+        <body style='font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333;'>
+            <div style='max-width: 600px; margin: 20px auto; padding: 20px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);'>
+                <h2 style='color: #2c3e50;'>Hello {$user->getName()},</h2>
+                <p>Your account has been successfully created on <strong>EasyHouse</strong>.</p>
+                <p>You can now log in and start exploring properties.</p>
+                <br>
+                <p>Best regards,<br><strong>The EasyHouse Team</strong></p>
+            </div>
+        </body>
+        </html>
+    ");
 
-    // ----------------- LOGIN -----------------
-    #[Route('/login', name: 'api_login', methods: ['POST'])]
+        $this->mailer->send($emailMessage);
+
+        return $this->json($user->toArray(), Response::HTTP_CREATED);
+    }           
+    
+        // ----------------- LOGIN -----------------
+        #[Route('/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request, UserRepository $userRepo): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
