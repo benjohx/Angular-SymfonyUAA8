@@ -12,8 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 
 #[Route('/api')]
 class AuthController extends AbstractController
@@ -21,18 +19,15 @@ class AuthController extends AbstractController
     private EntityManagerInterface $em;
     private UserRepository $userRepository;
     private UserPasswordHasherInterface $passwordHasher;
-    private ?MailerInterface $mailer;
 
     public function __construct(
         EntityManagerInterface $em,
         UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher,
-        ?MailerInterface $mailer = null
+        UserPasswordHasherInterface $passwordHasher
     ) {
         $this->em = $em;
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
-        $this->mailer = $mailer;
     }
 
     // ----------------- REGISTER -----------------
@@ -61,35 +56,7 @@ class AuthController extends AbstractController
         $this->em->persist($user);
         $this->em->flush();
 
-        // Optional: send welcome email if Mailer is configured
-        if ($this->mailer) {
-            try {
-                $emailMessage = (new Email())
-                    ->from('noreply@realestatepro.local')
-                    ->to($email)
-                    ->subject('Welcome to RealEstatePro!')
-                    ->html("
-                        <h2>Welcome, {$name}!</h2>
-                        <p>Your account has been successfully created on <strong>RealEstatePro</strong>.</p>
-                        <p>You can now log in and start exploring properties.</p>
-                        <br>
-                        <p>Best regards,<br><strong>The RealEstatePro Team</strong></p>
-                    ");
-                $this->mailer->send($emailMessage);
-            } catch (\Exception $e) {
-                // Log email errors
-            }
-        }
-
-        return $this->json([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'name' => $user->getName(),
-            'roles' => $user->getRoles(),
-            'savedProperties' => [],
-            'searchPreferences' => [],
-            'message' => 'User registered successfully.'
-        ], Response::HTTP_CREATED);
+        return $this->json($user->toArray(), Response::HTTP_CREATED);
     }
 
     // ----------------- LOGIN -----------------
@@ -109,24 +76,8 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Optionally, handle session or JWT
-        // For simplicity, frontend can use cookies/session
-        return $this->json([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'name' => $user->getName(),
-            'roles' => $user->getRoles(),
-            'savedProperties' => [],
-            'searchPreferences' => []
-        ]);
-    }
-
-    // ----------------- LOGOUT -----------------
-    #[Route('/logout', name: 'api_logout', methods: ['POST'])]
-    public function logout(): JsonResponse
-    {
-        // Symfony logout handled by firewall, this is just a placeholder
-        return $this->json(['message' => 'Logged out successfully.']);
+        // Session will automatically store user since stateless: false
+        return $this->json($user->toArray());
     }
 
     // ----------------- CURRENT USER -----------------
@@ -137,13 +88,6 @@ class AuthController extends AbstractController
             return $this->json(null, Response::HTTP_UNAUTHORIZED);
         }
 
-        return $this->json([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'name' => $user->getName(),
-            'roles' => $user->getRoles(),
-            'savedProperties' => [],
-            'searchPreferences' => []
-        ]);
+        return $this->json($user->toArray());
     }
 }
