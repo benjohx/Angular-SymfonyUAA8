@@ -1,3 +1,4 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Property, SearchPreferences } from '../models/property.model';
 import { Observable, of } from 'rxjs';
@@ -6,6 +7,8 @@ import { Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class PropertyService {
+  private apiUrl = 'http://localhost:8000/api/properties'; // Symfony API
+  constructor(private http: HttpClient) {}
   private properties: Property[] = [
     {
       id: 1,

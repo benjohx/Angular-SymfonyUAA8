@@ -8,7 +8,7 @@ import { User, SearchPreferences } from '../models/property.model';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = 'http://127.0.0.1:8000/api/user'; // Symfony API
 
   // Reactive user state
   private userSubject = new BehaviorSubject<User | null>(null);
@@ -86,4 +86,15 @@ logout(): Observable<any> {
     this.userSubject.next(null);
     localStorage.removeItem('currentUser');
   }
+  getAllUsers(): Observable<User[]> {
+  return this.http.get<User[]>(`${this.apiUrl}/s`, { withCredentials: true });
+}
+
+promoteToAdmin(userId: number): Observable<void> {
+  return this.http.put<void>(`${this.apiUrl}/${userId}/promote`, {}, { withCredentials: true });
+}
+
+deleteUser(userId: number): Observable<void> {
+  return this.http.delete<void>(`${this.apiUrl}/${userId}`, { withCredentials: true });
+}
 }
