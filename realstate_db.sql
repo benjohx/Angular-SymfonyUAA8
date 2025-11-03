@@ -35,12 +35,6 @@ CREATE TABLE IF NOT EXISTS `doctrine_migration_versions` (
   PRIMARY KEY (`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 
---
--- Dumping data for table `doctrine_migration_versions`
---
-
-INSERT INTO `doctrine_migration_versions` (`version`, `executed_at`, `execution_time`) VALUES
-('DoctrineMigrations\\Version20251030090540', '2025-10-30 09:05:50', 152);
 
 -- --------------------------------------------------------
 
@@ -84,16 +78,6 @@ CREATE TABLE IF NOT EXISTS `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `UNIQ_IDENTIFIER_EMAIL` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `user`
---
-
-INSERT INTO `user` (`id`, `email`, `name`, `roles`, `password`, `search_preferences`) VALUES
-(1, 'jackson@bibliotheque.com', 'Benimana Josue', '[\"ROLE_USER\"]', '$2y$13$D/9wi.SmiGE8djq0OIfYjOftkFmgeOzCJ8UKA2Lj1ra89eDCa9DqO', '[]'),
-(2, 'rose@bibliotheque.com', 'Marrie Rose', '[\"ROLE_USER\"]', '$2y$13$a3KyXLp4I1QF1bfVZ0x0YeAI0z74jt9tmcm.wFMj392a6uWHDgzCO', '[]'),
-(3, 'joy@bibliotheque.com', 'Umutoni joy', '[\"ROLE_USER\"]', '$2y$13$Uq6X4.kfcVhMzmF0DkxM6utfqMiOFNeCIpCb7u.2ZCS75cKpwLrUm', '[]'),
-(4, 'john@bibliotheque.com', 'john Walker', '[\"ROLE_USER\"]', '$2y$13$Jj0FBwCNcau/ynVlCdtYo.vS4Vz9p3fcKX8SLW1LG6jzmNsV1Y3pC', '[]');
 
 -- --------------------------------------------------------
 

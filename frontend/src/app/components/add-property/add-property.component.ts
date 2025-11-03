@@ -67,6 +67,8 @@ import { PropertyService } from '../../services/property.service';
           </div>
         </div>
 
+        <div class="form-group"> <label>Images</label> <input type="file" (change)="onFileChange($event)" multiple /> </div>
+
         <div class="form-group">
           <label>Location *</label>
           <input type="text" [(ngModel)]="property.location" name="location" required>
@@ -111,6 +113,17 @@ export class AddPropertyComponent {
   uploading = false;
 
   constructor(private propertyService: PropertyService, private router: Router) {}
+  onFileChange(event: any): void {
+    const files: FileList = event.target.files;
+    this.property.images = [];  
+    for (let i = 0; i < files.length; i++) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.property.images!.push(e.target.result);
+      };
+      reader.readAsDataURL(files[i]);
+    }
+  }
 
   onSubmit(): void {
     if (!this.property.title || !this.property.price) return;

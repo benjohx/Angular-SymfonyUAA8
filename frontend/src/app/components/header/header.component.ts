@@ -14,7 +14,7 @@ import { User } from '../../models/property.model';
     <header class="header">
       <div class="container">
         <div class="logo" (click)="goHome()">
-          <h1>RealEstatePro</h1>
+          <h1>EasyHouse</h1>
         </div>
 
         <nav class="nav">
@@ -39,7 +39,7 @@ import { User } from '../../models/property.model';
     </header>
   `,
   styles: [`
-    .header { background: #2c3e50; color: white; padding: 1rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header { background: #000000ff; color: white; padding: 1rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
     .logo h1 { margin: 0; cursor: pointer; color: #3498db; }
     .nav { display: flex; gap: 2rem; }

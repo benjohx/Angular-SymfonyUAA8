@@ -20,7 +20,7 @@ export class PropertyService {
       bathrooms: 1,
       images: ['assets/appartment.jpg'],
       createdAt: new Date(),
-      contactEmail: 'agent@eassybank.be',
+      contactEmail: 'agent@eashouse.be',
       contactPhone: '+1234567890'
     },
     {
@@ -36,7 +36,7 @@ export class PropertyService {
       bathrooms: 3,
       images: ['assets/villa1.jpg'],
       createdAt: new Date(),
-      contactEmail: 'owner@eassybank.be',
+      contactEmail: 'owner@eashouse.be',
       contactPhone: '+1234567891'
     },
     {
@@ -52,7 +52,7 @@ export class PropertyService {
       bathrooms: 3,
       images: ['assets/home.jpg'],
       createdAt: new Date(),
-      contactEmail: 'owner@eassybank.be',
+      contactEmail: 'owner@eashouse.be',
       contactPhone: '+1234567891'
     },
     {
@@ -68,7 +68,7 @@ export class PropertyService {
       bathrooms: 3,
       images: ['assets/appartment1.jpg'],
       createdAt: new Date(),
-      contactEmail: 'owner@eassybank.be',
+      contactEmail: 'angent@eashouse.be',
       contactPhone: '+1234567891'
     },
     {
@@ -84,7 +84,7 @@ export class PropertyService {
       bathrooms: 3,
       images: ['assets/appartment.jpg'],
       createdAt: new Date(),
-      contactEmail: 'owner@eassybank.be',
+      contactEmail: 'owner@eashouse.be',
       contactPhone: '+1234567891'
     },
     {
@@ -100,7 +100,7 @@ export class PropertyService {
       bathrooms: 3,
       images: ['assets/villa1.jpg'],
       createdAt: new Date(),
-      contactEmail: 'owner@eassybank.be',
+      contactEmail: 'agent@eashouse.be',
       contactPhone: '+1234567891'
     }
   ];

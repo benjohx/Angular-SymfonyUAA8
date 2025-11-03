@@ -80,6 +80,8 @@ import { UserService } from '../../services/user.service';
               <span>{{ property.area }} m²</span>
             </div>
             <p class="description">{{ property.description }}</p>
+            <p class="contactemail">{{ property.contactEmail }}</p>
+            <p class="contactnumber">{{ property.contactPhone }}</p>
             <div class="property-actions">
               <button
                 class="btn btn-primary"
