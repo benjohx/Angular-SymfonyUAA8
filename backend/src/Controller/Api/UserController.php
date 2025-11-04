@@ -15,8 +15,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 #[Route('/api/user')]
 class UserController extends AbstractController
 {
-   // 🧩 List all users (admin-only)
-    #[Route('/s', name: 'api_users_list', methods: ['GET'])] // 👈 slash added
+     // 🧩 New route: List all users (admin-only)
+    #[Route('s', name: 'api_users_list', methods: ['GET'])] // 👈 note the "s"
     public function listUsers(UserRepository $userRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
@@ -33,6 +33,7 @@ class UserController extends AbstractController
         return new JsonResponse($data);
     }
 
+    // 🧩 New route: Promote user to admin
     #[Route('/{id}/promote', name: 'api_user_promote', methods: ['PUT'])]
     public function promote(int $id, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
     {
@@ -53,6 +54,7 @@ class UserController extends AbstractController
         return new JsonResponse(['message' => 'User promoted successfully']);
     }
 
+    // 🧩 New route: Delete user
     #[Route('/{id}', name: 'api_user_delete', methods: ['DELETE'])]
     public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
     {
@@ -68,9 +70,8 @@ class UserController extends AbstractController
 
         return new JsonResponse(['message' => 'User deleted successfully']);
     }
-
-    // ✅ FIXED: was "/api/me", now "/me"
-    #[Route('/me', name: 'api_me', methods: ['GET'])]
+    // ----------------- API ME endpoint -----------------
+     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function me(): JsonResponse
     {
         $user = $this->getUser();
@@ -85,6 +86,7 @@ class UserController extends AbstractController
             'roles' => $user->getRoles()
         ]);
     }
+    
     // ----------------- Get current user -----------------
     #[Route('', methods: ['GET'])]
     public function current(): JsonResponse

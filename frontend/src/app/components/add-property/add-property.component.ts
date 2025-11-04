@@ -49,6 +49,11 @@ import { PropertyService } from '../../services/property.service';
             <input type="number" [(ngModel)]="property.price" name="price" required>
           </div>
 
+        <div class="form-group">
+          <label>Location *</label>
+          <input type="text" [(ngModel)]="property.location" name="location" required>
+        </div>
+
           <div class="form-group">
             <label>Area (m²) *</label>
             <input type="number" [(ngModel)]="property.area" name="area" required>
@@ -67,11 +72,12 @@ import { PropertyService } from '../../services/property.service';
           </div>
         </div>
 
-        <div class="form-group"> <label>Images</label> <input type="file" (change)="onFileChange($event)" multiple /> </div>
-
         <div class="form-group">
-          <label>Location *</label>
-          <input type="text" [(ngModel)]="property.location" name="location" required>
+          <label>Images</label>
+          <input type="file" (change)="onFileChange($event)" multiple>
+          <div class="image-preview">
+            <img *ngFor="let img of previewImages" [src]="img" />
+          </div>
         </div>
 
         <div class="form-group">
@@ -85,8 +91,8 @@ import { PropertyService } from '../../services/property.service';
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary" [disabled]="!propertyForm.form.valid">
-            Add Property
+          <button type="submit" class="btn btn-primary" [disabled]="!propertyForm.form.valid || uploading">
+            {{ uploading ? 'Uploading...' : 'Add Property' }}
           </button>
           <button type="button" class="btn btn-outline" (click)="cancel()">Cancel</button>
         </div>
@@ -106,38 +112,44 @@ import { PropertyService } from '../../services/property.service';
     .btn-primary { background: #3498db; color: white; }
     .btn-primary:disabled { background: #bdc3c7; cursor: not-allowed; }
     .btn-outline { background: transparent; border: 1px solid #3498db; color: #3498db; }
+    .image-preview img { width: 100px; margin-right: 10px; margin-top: 10px; border-radius: 4px; }
   `]
 })
 export class AddPropertyComponent {
   property: Partial<Property> = {};
+  selectedFiles: File[] = [];
+  previewImages: string[] = [];
   uploading = false;
 
   constructor(private propertyService: PropertyService, private router: Router) {}
+
   onFileChange(event: any): void {
     const files: FileList = event.target.files;
-    this.property.images = [];  
-    for (let i = 0; i < files.length; i++) {
+    this.selectedFiles = Array.from(files);
+    this.previewImages = [];
+
+    // Preview
+    for (let file of this.selectedFiles) {
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.property.images!.push(e.target.result);
-      };
-      reader.readAsDataURL(files[i]);
+      reader.onload = (e: any) => this.previewImages.push(e.target.result);
+      reader.readAsDataURL(file);
     }
   }
 
   onSubmit(): void {
     if (!this.property.title || !this.property.price) return;
-
     this.uploading = true;
 
-    this.propertyService.addProperty(this.property as Property).subscribe({
+    this.propertyService.addProperty(this.property as Property, this.selectedFiles).subscribe({
       next: () => {
         this.uploading = false;
+        alert('Property added successfully!');
         this.router.navigate(['/properties']);
       },
       error: (err: any) => {
         console.error('Add property failed', err);
         this.uploading = false;
+        alert('Failed to add property. Please try again.');
       }
     });
   }

@@ -13,9 +13,17 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(email: string, password: string): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/login`, { email, password }, { withCredentials: true })
-      .pipe(tap(user => this.currentUserSubject.next(user)));
-  }
+  return this.http.post<User>(
+    `${this.apiUrl}/login`,
+    { email, password },
+    { withCredentials: true } // important: sends cookies
+  ).pipe(
+    tap(user => {
+      this.currentUserSubject.next(user);
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    })
+  );
+}
 
   logout(): Observable<any> {
     return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true })
