@@ -1,68 +1,68 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Property, SearchPreferences } from '../models/property.model';
+import { Property } from '../models/property.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PropertyService {
-  private apiUrl = 'http://localhost:8000/api/properties'; // Symfony API endpoint
+  private apiUrl = 'http://localhost:8000/api/properties';
 
   constructor(private http: HttpClient) {}
 
-  private jsonHeaders = new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  });
-
-  /** 🔹 Get all properties */
-  getProperties(): Observable<Property[]> {
-    return this.http.get<Property[]>(this.apiUrl, { headers: this.jsonHeaders });
-  }
-
-  /** 🔹 Get single property by ID */
-  getPropertyById(id: number): Observable<Property> {
-    return this.http.get<Property>(`${this.apiUrl}/${id}`, { headers: this.jsonHeaders });
-  }
-
-  /** 🔹 Search properties (delegated to Symfony filters) */
-  searchProperties(filters: SearchPreferences): Observable<Property[]> {
-    let params = new HttpParams();
-
-    if (filters.type) params = params.set('type', filters.type);
-    if (filters.minPrice) params = params.set('minPrice', filters.minPrice.toString());
-    if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
-    if (filters.location) params = params.set('location', filters.location);
-    if (filters.minBedrooms) params = params.set('minBedrooms', filters.minBedrooms.toString());
-    if (filters.propertyType) params = params.set('propertyType', filters.propertyType);
-
-    return this.http.get<Property[]>(`${this.apiUrl}/search`, { params, headers: this.jsonHeaders });
-  }
-
-  /** 🔹 Add a new property (POST) */
- addProperty(property: Property, files?: File[]): Observable<Property> {
-  const formData = new FormData();
-  Object.keys(property).forEach(key => {
-    const value = (property as any)[key];
-    if (value !== undefined && value !== null && key !== 'images') {
-      formData.append(key, value);
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('jwt_token'); // make sure this key matches your login storage
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
     }
-  });
-  if (files) {
-    files.forEach(file => formData.append('images', file));
+    return headers;
   }
 
-  return this.http.post<Property>(this.apiUrl, formData, { withCredentials: true });
-}
+  getAllProperties(): Observable<Property[]> {
+    return this.http.get<Property[]>(this.apiUrl, { headers: this.getAuthHeaders() });
+  }
 
-  /** 🔹 Update existing property (PUT/PATCH) */
+  getPropertyById(id: number): Observable<Property> {
+    return this.http.get<Property>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+  }
+
+  createProperty(property: Partial<Property>): Observable<Property> {
+    // Ensure images is an array
+    const payload = {
+      ...property,
+      images: property.images
+        ? typeof property.images === 'string'
+          ? (property.images as string).split(',').map(img => img.trim())
+          : property.images
+        : []
+    };
+
+    // Ensure numbers are proper decimals (replace commas with dots)
+    if (payload.price) payload.price = parseFloat(payload.price.toString().replace(',', '.'));
+    if (payload.area) payload.area = parseFloat(payload.area.toString().replace(',', '.'));
+
+    return this.http.post<Property>(this.apiUrl, payload, { headers: this.getAuthHeaders() });
+  }
+
   updateProperty(id: number, property: Partial<Property>): Observable<Property> {
-    return this.http.put<Property>(`${this.apiUrl}/${id}`, property, { headers: this.jsonHeaders });
+    const payload = {
+      ...property,
+      images: property.images
+        ? typeof property.images === 'string'
+          ? (property.images as string).split(',').map(img => img.trim())
+          : property.images
+        : []
+    };
+
+    if (payload.price) payload.price = parseFloat(payload.price.toString().replace(',', '.'));
+    if (payload.area) payload.area = parseFloat(payload.area.toString().replace(',', '.'));
+
+    return this.http.put<Property>(`${this.apiUrl}/${id}`, payload, { headers: this.getAuthHeaders() });
   }
 
-  /** 🔹 Delete property */
   deleteProperty(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.jsonHeaders });
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
   }
 }

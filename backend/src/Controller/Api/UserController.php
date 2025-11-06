@@ -1,168 +1,172 @@
 <?php
-
 namespace App\Controller\Api;
 
 use App\Entity\User;
-use App\Entity\Property;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\UserRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Uid\Uuid;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-#[Route('/api/user')]
+#[Route('/api/users')]
 class UserController extends AbstractController
 {
-     // 🧩 New route: List all users (admin-only)
-    #[Route('s', name: 'api_users_list', methods: ['GET'])] // 👈 note the "s"
-    public function listUsers(UserRepository $userRepository): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+    public function __construct(
+        private EntityManagerInterface $em, 
+        private UserRepository $repo,
+        private UserPasswordHasherInterface $passwordHasher
+    ) {}
 
-        $users = $userRepository->findAll();
-
-        $data = array_map(fn(User $u) => [
-            'id' => $u->getId(),
-            'email' => $u->getUserIdentifier(),
-            'name' => $u->getName(),
-            'roles' => $u->getRoles(),
-        ], $users);
-
-        return new JsonResponse($data);
-    }
-
-    // 🧩 New route: Promote user to admin
-    #[Route('/{id}/promote', name: 'api_user_promote', methods: ['PUT'])]
-    public function promote(int $id, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        $user = $userRepository->find($id);
-        if (!$user) {
-            return new JsonResponse(['message' => 'User not found'], 404);
-        }
-
-        $roles = $user->getRoles();
-        if (!in_array('ROLE_ADMIN', $roles)) {
-            $roles[] = 'ROLE_ADMIN';
-            $user->setRoles($roles);
-            $em->flush();
-        }
-
-        return new JsonResponse(['message' => 'User promoted successfully']);
-    }
-
-    // 🧩 New route: Delete user
-    #[Route('/{id}', name: 'api_user_delete', methods: ['DELETE'])]
-    public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        $user = $userRepository->find($id);
-        if (!$user) {
-            return new JsonResponse(['message' => 'User not found'], 404);
-        }
-
-        $em->remove($user);
-        $em->flush();
-
-        return new JsonResponse(['message' => 'User deleted successfully']);
-    }
-    // ----------------- API ME endpoint -----------------
-     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
-    public function me(): JsonResponse
-    {
-        $user = $this->getUser();
-        if (!$user) {
-            return new JsonResponse(null, 401);
-        }
-
-        return new JsonResponse([
-            'id' => $user->getId(),
-            'email' => $user->getUserIdentifier(),
-            'name' => $user->getName(),
-            'roles' => $user->getRoles()
-        ]);
-    }
-    
-    // ----------------- Get current user -----------------
+    // List all users
     #[Route('', methods: ['GET'])]
-    public function current(): JsonResponse
-    {
-        $user = $this->getUser();
-        if (!$user) return new JsonResponse(['message' => 'Unauthorized'], 401);
-
-        return $this->json($user, 200, [], ['groups' => ['user']]);
+    public function index(): JsonResponse {
+        $users = $this->repo->findAll();
+        return $this->json($users);
     }
 
-    // ----------------- Update user info -----------------
-    #[Route('/update', methods: ['PUT'])]
-    public function update(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $user = $this->getUser();
-        if (!$user) return new JsonResponse(['message' => 'Unauthorized'], 401);
-
-        $data = json_decode($request->getContent(), true);
-
-        if (isset($data['name'])) $user->setName($data['name']);
-        if (isset($data['searchPreferences'])) $user->setSearchPreferences($data['searchPreferences']);
-
-        $em->flush();
-
-        return $this->json($user, 200, [], ['groups' => ['user']]);
+    // Get a single user
+    #[Route('/{id}', methods: ['GET'])]
+    public function show(User $user): JsonResponse {
+        return $this->json($user);
     }
 
-    // ----------------- Change password -----------------
-    #[Route('/password', methods: ['PUT'])]
-    public function changePassword(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): JsonResponse
-    {
-        $user = $this->getUser();
-        if (!$user) return new JsonResponse(['message' => 'Unauthorized'], 401);
-
+    // Create a new user
+   #[Route('', methods: ['POST'])]
+public function create(Request $request, MailerInterface $mailer): JsonResponse
+{
+    try {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['newPassword'])) {
-            return new JsonResponse(['message' => 'New password required'], 400);
+        $user = new User();
+        $user->setName($data['name'] ?? '');
+        $user->setEmail($data['email'] ?? '');
+        $user->setRoles(['ROLE_USER']);
+        $user->setSearchPreferences($data['searchPreferences'] ?? []);
+
+        if (!empty($data['password'])) {
+            $user->setPassword($this->passwordHasher->hashPassword($user, $data['password']));
         }
 
-        $user->setPassword($hasher->hashPassword($user, $data['newPassword']));
-        $em->flush();
+        // Generate confirmation token
+        $confirmationToken = Uuid::v4()->toRfc4122();
+        $user->setConfirmationToken($confirmationToken);
 
-        return new JsonResponse(['message' => 'Password updated successfully']);
+        $this->em->persist($user);
+        $this->em->flush();
+
+        // Send confirmation email
+        $confirmationLink = sprintf('http://localhost:4200/confirm/%s', $confirmationToken);
+
+        $email = (new Email())
+            ->from('no-reply@realestatepro.com')
+            ->to($user->getEmail())
+            ->subject('Confirm your account')
+            ->html("<p>Hi {$user->getName()},</p>
+                    <p>Thank you for registering! Please confirm your email by clicking the link below:</p>
+                    <p><a href='{$confirmationLink}'>Confirm Account</a></p>");
+
+        try {
+            $mailer->send($email);
+        } catch (\Exception $e) {
+            // If email fails, still allow user creation
+            return $this->json([
+                'status' => 'User created, but failed to send confirmation email.',
+                'error' => $e->getMessage()
+            ], 201);
+        }
+
+        return $this->json([
+            'status' => 'User created. Please check your email to confirm your account.'
+        ], 201);
+
+    } catch (\Exception $e) {
+        return $this->json([
+            'error' => 'Registration failed.',
+            'details' => $e->getMessage()
+        ], 500);
     }
+}
 
-    // ----------------- Save a property -----------------
-    #[Route('/save-property/{id}', methods: ['POST'])]
-    public function saveProperty(EntityManagerInterface $em, int $id): JsonResponse
+
+    #[Route('/confirm/{token}', methods: ['GET'])]
+    public function confirmEmail(string $token): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user) return new JsonResponse(['message' => 'Unauthorized'], 401);
+        $user = $this->repo->findOneBy(['confirmationToken' => $token]);
 
-        $property = $em->getRepository(Property::class)->find($id);
-        if (!$property) return new JsonResponse(['message' => 'Property not found'], 404);
+        if (!$user) {
+            return $this->json(['error' => 'Invalid token'], 400);
+        }
 
-        $user->addSavedProperty($property);
-        $em->flush();
+        // Make sure Doctrine tracks changes
+        $user->setIsConfirmed(true);
+        $user->setConfirmationToken(null);
+        $this->em->persist($user); // <- important!
+        $this->em->flush();
 
-        return new JsonResponse(['message' => 'Property saved successfully']);
+        return $this->json(['status' => 'Email confirmed! You can now log in.']);
+    }
+    // Update an existing user
+    #[Route('/{id}', methods: ['PUT'])]
+    public function update(Request $request, User $user): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+
+        $user->setName($data['name'] ?? $user->getName());
+        $user->setEmail($data['email'] ?? $user->getEmail());
+
+        // Update password if provided
+        if (!empty($data['password'])) {
+            $user->setPassword($this->passwordHasher->hashPassword($user, $data['password']));
+        }
+
+        $user->setRoles($data['roles'] ?? $user->getRoles());
+        $user->setSearchPreferences($data['searchPreferences'] ?? $user->getSearchPreferences());
+
+        $this->em->flush();
+
+        return $this->json($user, 200);
     }
 
-    // ----------------- Unsave a property -----------------
-    #[Route('/unsave-property/{id}', methods: ['POST'])]
-    public function unsaveProperty(EntityManagerInterface $em, int $id): JsonResponse
+    // Delete a user
+    #[Route('/{id}', methods: ['DELETE'])]
+    public function delete(User $user): JsonResponse {
+        $this->em->remove($user);
+        $this->em->flush();
+
+        return $this->json(['status' => 'deleted'], 200);
+    }
+
+    #[Route('/login', methods: ['POST'])]
+    public function login(Request $request): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user) return new JsonResponse(['message' => 'Unauthorized'], 401);
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'] ?? '';
+        $password = $data['password'] ?? '';
 
-        $property = $em->getRepository(Property::class)->find($id);
-        if (!$property) return new JsonResponse(['message' => 'Property not found'], 404);
+        $user = $this->repo->findOneBy(['email' => $email]);
+        if (!$user) {
+            return $this->json(['error' => 'Invalid credentials'], 401);
+        }
 
-        $user->removeSavedProperty($property);
-        $em->flush();
+        if (!$this->passwordHasher->isPasswordValid($user, $password)) {
+            return $this->json(['error' => 'Invalid credentials'], 401);
+        }
 
-        return new JsonResponse(['message' => 'Property removed from saved list']);
-    }
-    
+        if (!$user->isConfirmed()) {
+            return $this->json(['error' => 'Please confirm your email before logging in.'], 403);
+        }
+
+        return $this->json([
+        'id' => $user->getId(),
+        'name' => $user->getName(),
+        'email' => $user->getEmail(),
+        'roles' => $user->getRoles(),
+        'isConfirmed' => $user->isConfirmed(),
+    ]);
+}
 }

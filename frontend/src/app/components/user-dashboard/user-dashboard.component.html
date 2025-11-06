@@ -1,0 +1,42 @@
+<div class="container mt-4">
+  <h2>User Dashboard</h2>
+
+  <h4>Saved Properties</h4>
+  <div class="row">
+    <div class="col-md-4 mb-3" *ngFor="let property of savedProperties">
+      <div class="card h-100">
+        <img [src]="property.images?.[0] || 'assets/placeholder.jpg'" class="card-img-top" alt="Property Image">
+        <div class="card-body">
+          <h5 class="card-title">{{ property.title }}</h5>
+          <p class="card-text">{{ property.location }} | ${{ property.price }}</p>
+          <a [routerLink]="['/properties', property.id]" class="btn btn-primary">View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4 class="mt-5">Search Preferences</h4>
+  <form (ngSubmit)="updatePreferences()">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <input type="text" class="form-control" placeholder="Location" [(ngModel)]="preferences.location" name="location">
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" [(ngModel)]="preferences.type" name="type">
+          <option value="">Any</option>
+          <option value="sale">Sale</option>
+          <option value="rental">Rental</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control" placeholder="Min Price" [(ngModel)]="preferences.minPrice" name="minPrice">
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control" placeholder="Max Price" [(ngModel)]="preferences.maxPrice" name="maxPrice">
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-success w-100">Update Preferences</button>
+      </div>
+    </div>
+  </form>
+</div>

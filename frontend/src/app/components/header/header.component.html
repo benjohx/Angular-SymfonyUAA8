@@ -1,0 +1,34 @@
+<header class="header">
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo" (click)="goHome()">
+      <h1>EasyHouse</h1>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      <a routerLink="/properties" class="nav-link" routerLinkActive="active">Properties</a>
+      <a routerLink="/contact" class="nav-link" routerLinkActive="active">Contact</a>
+    </nav>
+
+    <!-- User Section -->
+    <div class="user-section">
+      <ng-container *ngIf="currentUser$ | async as user; else loginSection">
+        <span class="welcome">Welcome, {{ user.name }}</span>
+
+        <!-- Dashboard Link -->
+        <button class="btn btn-outline" (click)="navigateToDashboard()">
+          Dashboard
+        </button>
+
+        <button class="btn btn-outline" (click)="logout()">Logout</button>
+      </ng-container>
+
+      <ng-template #loginSection>
+        <button class="btn btn-primary" (click)="navigateToLogin()">Login</button>
+        <button class="btn btn-outline" (click)="navigateToRegister()">Register</button>
+      </ng-template>
+    </div>
+  </div>
+</header>

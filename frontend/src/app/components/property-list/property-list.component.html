@@ -1,0 +1,37 @@
+<div class="container mt-4">
+  <h2>Properties</h2>
+  <form class="row g-3 mb-4" (ngSubmit)="searchProperties()">
+    <div class="col-md-3">
+      <input type="text" class="form-control" placeholder="Location" [(ngModel)]="filters.location" name="location">
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" [(ngModel)]="filters.type" name="type">
+        <option value="">All</option>
+        <option value="sale">Sale</option>
+        <option value="rental">Rental</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" placeholder="Min Price" [(ngModel)]="filters.minPrice" name="minPrice">
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" placeholder="Max Price" [(ngModel)]="filters.maxPrice" name="maxPrice">
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary w-100">Search</button>
+    </div>
+  </form>
+
+  <div class="row">
+    <div class="col-md-4 mb-3" *ngFor="let property of properties">
+      <div class="card h-100">
+        <img [src]="property.images?.[0] || 'assets/placeholder.jpg'" class="card-img-top" alt="Property Image">
+        <div class="card-body">
+          <h5 class="card-title">{{ property.title }}</h5>
+          <p class="card-text">{{ property.location }} | ${{ property.price }}</p>
+          <a [routerLink]="['/properties', property.id]" class="btn btn-primary">View Details</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

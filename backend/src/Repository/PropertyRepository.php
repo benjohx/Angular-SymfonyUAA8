@@ -16,43 +16,28 @@ class PropertyRepository extends ServiceEntityRepository
         parent::__construct($registry, Property::class);
     }
 
-    /**
-     * Search properties by filters
-     */
-    public function searchProperties(array $filters): array
-    {
-        $qb = $this->createQueryBuilder('p');
+    //    /**
+    //     * @return Property[] Returns an array of Property objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('p.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
-        if (!empty($filters['type'])) {
-            $qb->andWhere('p.type = :type')
-               ->setParameter('type', $filters['type']);
-        }
-
-        if (!empty($filters['propertyType'])) {
-            $qb->andWhere('p.propertyType = :propertyType')
-               ->setParameter('propertyType', $filters['propertyType']);
-        }
-
-        if (!empty($filters['location'])) {
-            $qb->andWhere('p.location LIKE :location')
-               ->setParameter('location', '%' . $filters['location'] . '%');
-        }
-
-        if (!empty($filters['minPrice'])) {
-            $qb->andWhere('p.price >= :minPrice')
-               ->setParameter('minPrice', $filters['minPrice']);
-        }
-
-        if (!empty($filters['maxPrice'])) {
-            $qb->andWhere('p.price <= :maxPrice')
-               ->setParameter('maxPrice', $filters['maxPrice']);
-        }
-
-        if (!empty($filters['minBedrooms'])) {
-            $qb->andWhere('p.bedrooms >= :minBedrooms')
-               ->setParameter('minBedrooms', $filters['minBedrooms']);
-        }
-
-        return $qb->orderBy('p.createdAt', 'DESC')->getQuery()->getResult();
-    }
+    //    public function findOneBySomeField($value): ?Property
+    //    {
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }

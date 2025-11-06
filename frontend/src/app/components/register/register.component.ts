@@ -1,84 +1,42 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { RouterModule, Router } from '@angular/router';
+import { UserService } from '../../services/user.service';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
-    <div class="register-container">
-      <h2>Register</h2>
-      <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-        <div class="form-group">
-          <label for="name">Full Name</label>
-          <input type="text" id="name" name="name" [(ngModel)]="name" required />
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" [(ngModel)]="email" required />
-        </div>
-
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" [(ngModel)]="password" required />
-        </div>
-
-        <button type="submit" class="btn btn-primary" [disabled]="loading">
-          {{ loading ? 'Registering...' : 'Register' }}
-        </button>
-
-        <p class="error" *ngIf="error">{{ error }}</p>
-      </form>
-    </div>
-  `,
-  styles: [`
-    .register-container { max-width: 400px; margin: 50px auto; padding: 30px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
-    h2 { text-align: center; margin-bottom: 20px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-    .btn { width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    .btn:disabled { background: #7f8c8d; cursor: not-allowed; }
-    .error { margin-top: 10px; color: #e74c3c; text-align: center; }
-  `]
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent {
-  name: string = '';
-  email: string = '';
-  password: string = '';
-  loading = false;
-  error: string | null = null;
+  name = '';
+  email = '';
+  password = '';
+  registrationSuccess = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private userService: UserService, private router: Router) {}
 
-  onSubmit(): void {
-    if (!this.name || !this.email || !this.password) return;
+  register(): void {
+    const newUser = {
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      roles: ['ROLE_USER'],
+      savedProperties: [],
+      searchPreferences: {}
+    };
 
-    this.loading = true;
-    this.error = null;
-
-    this.authService.register(this.name, this.email, this.password).subscribe({
+    this.userService.createUser(newUser).subscribe({
       next: () => {
-        this.loading = false;
-        this.router.navigate(['/']); // Redirect to homepage or dashboard
+        // Show "check your email" message instead of redirecting immediately
+        this.registrationSuccess = true;
       },
       error: (err) => {
-        this.loading = false;
-
-        // Handle backend errors
-        if (err?.error?.error) {
-          this.error = err.error.error;
-        } else if (err?.status === 0) {
-          this.error = 'Unable to reach the server. Check backend and CORS.';
-        } else {
-          this.error = `Registration failed (status ${err.status}).`;
-        }
-
-        console.error('Registration failed', err);
+        alert('Registration failed: ' + (err.error?.error || err.message));
       }
     });
   }

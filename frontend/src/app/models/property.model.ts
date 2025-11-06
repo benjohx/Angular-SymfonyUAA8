@@ -1,4 +1,3 @@
-
 export interface Property {
   id: number;
   title: string;
@@ -13,23 +12,5 @@ export interface Property {
   images?: string[];
   contactPhone?: string;
   contactEmail?: string;
-  createdAt?: Date;    
-}
-
-export interface SearchPreferences {
-  type?: 'sale' | 'rental';
-  location?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  minBedrooms?: number;
-  propertyType?: 'apartment' | 'house' | 'villa';
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  roles: string[];              // ✅ Always an array
-  savedProperties: number[];
-  searchPreferences: SearchPreferences;
+  createdAt?: Date;
 }

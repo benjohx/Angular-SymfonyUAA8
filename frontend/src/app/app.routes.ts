@@ -1,36 +1,32 @@
-import { RouterModule, Routes } from '@angular/router';
-import { NgModule } from '@angular/core';
-
+import { Routes } from '@angular/router';
+import { HomeComponent } from './pages/home/home.component';
+import { HeaderComponent } from './components/header/header.component'; 
 import { PropertyListComponent } from './components/property-list/property-list.component';
-import { AddPropertyComponent } from './components/add-property/add-property.component';
-import { ContactComponent } from './components/contact/contact.component';
+import { PropertyDetailComponent } from './components/property-detail/property-detail.component';
+import { UserDashboardComponent } from './components/user-dashboard/user-dashboard.component';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
-import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
-
-import { AuthGuard } from './guards/auth.guard';
-import { RoleGuard } from './guards/role.guard';
+import { ContactComponent } from './components/contact/contact.component';
 
 export const routes: Routes = [
-  { path: '', component: PropertyListComponent },
+  { path: '', component: HomeComponent },
+  { path: 'header', component: HeaderComponent },
   { path: 'properties', component: PropertyListComponent },
-  { path: 'add-property', component: AddPropertyComponent },
+  { path: 'properties/:id', component: PropertyDetailComponent },
+  { path: 'user-dashboard', component: UserDashboardComponent },
+  { path: 'admin-dashboard', component: AdminDashboardComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
   { path: 'contact', component: ContactComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
 
-  { 
-    path: 'admin', 
-    component: AdminDashboardComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_ADMIN'] }
+  {
+  path: 'confirm/:token',
+  loadComponent: () => import('./pages/confirm/confirm.component').then(m => m.ConfirmComponent)
   },
 
-  { path: '**', redirectTo: '' }
-];
 
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule {}
+  { path: '**', redirectTo: '' },
+];

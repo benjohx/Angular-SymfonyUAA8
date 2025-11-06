@@ -1,0 +1,121 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Admin Dashboard</h1>
+
+  <!-- Users Section -->
+  <div class="mb-5">
+    <h2>Users</h2>
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Roles</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.roles.join(', ') }}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" (click)="deleteUser(user.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Properties Section -->
+  <div class="mb-5">
+    <h2>Properties</h2>
+
+    <!-- Add Property Form -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        Add New Property
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="addProperty()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Title *</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.title" name="title" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Location</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.location" name="location">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Price</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.price" name="price" placeholder="e.g., 123.45">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Bedrooms</label>
+              <input type="number" class="form-control" [(ngModel)]="newProperty.bedrooms" name="bedrooms">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Bathrooms</label>
+              <input type="number" class="form-control" [(ngModel)]="newProperty.bathrooms" name="bathrooms">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Type</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.type" name="type">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Property Type</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.propertyType" name="propertyType">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Area (sq.m)</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.area" name="area" placeholder="e.g., 75.5">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact Phone</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.contactPhone" name="contactPhone">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact Email</label>
+              <input type="email" class="form-control" [(ngModel)]="newProperty.contactEmail" name="contactEmail">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Images (comma separated URLs)</label>
+              <input type="text" class="form-control" [(ngModel)]="newProperty.images" name="images" placeholder="http://example.com/img1.jpg, http://example.com/img2.jpg">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success mt-3">Add Property</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Properties Table -->
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Location</th>
+          <th>Price</th>
+          <th>Bedrooms</th>
+          <th>Bathrooms</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let property of properties">
+          <td>{{ property.id }}</td>
+          <td>{{ property.title }}</td>
+          <td>{{ property.location }}</td>
+          <td>{{ property.price | number:'1.2-2' }}</td>
+          <td>{{ property.bedrooms }}</td>
+          <td>{{ property.bathrooms }}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" (click)="deleteProperty(property.id!)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

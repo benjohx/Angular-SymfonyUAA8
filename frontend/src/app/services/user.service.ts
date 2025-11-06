@@ -1,100 +1,79 @@
-// src/app/services/user.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { User, SearchPreferences } from '../models/property.model';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { User } from '../models/user.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://127.0.0.1:8000/api/user'; // Symfony API
+  private apiUrl = 'http://localhost:8000/api/users';
 
-  // Reactive user state
-  private userSubject = new BehaviorSubject<User | null>(null);
-  currentUser$ = this.userSubject.asObservable();
+  // BehaviorSubject holds the current user and emits updates
+  private currentUserSubject: BehaviorSubject<User | null>;
+  public currentUser$: Observable<User | null>;
 
   constructor(private http: HttpClient) {
-    // Initialize from localStorage if exists
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      this.userSubject.next(JSON.parse(savedUser));
-    }
-  }
-
-  // Register a new user
-  register(email: string, name: string, password: string): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/register`, { email, name, password }, { withCredentials: true }).pipe(
-      tap(user => {
-        this.userSubject.next(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-      })
+    // Load user from localStorage if exists
+    const storedUser = localStorage.getItem('currentUser');
+    this.currentUserSubject = new BehaviorSubject<User | null>(
+      storedUser ? JSON.parse(storedUser) : null
     );
+    this.currentUser$ = this.currentUserSubject.asObservable();
   }
 
-  // Login existing user
+  // ---------- CRUD Methods ----------
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl);
+  }
+
+  getUserById(id: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  }
+
+  createUser(user: Partial<User>): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user);
+  }
+
+  updateUser(id: number, user: Partial<User>): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/${id}`, user);
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  register(userData: Partial<User>): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/register`, userData);
+  }
+
+  // ---------- Auth Methods ----------
   login(email: string, password: string): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/login`, { email, password }, { withCredentials: true }).pipe(
-      tap(user => {
-        this.userSubject.next(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-      })
-    );
+    return this.http
+      .post<User>(`${this.apiUrl}/login`, { email, password })
+      .pipe(
+        tap((user) => {
+          this.setCurrentUser(user);
+          localStorage.setItem('currentUser', JSON.stringify(user)); // persist in localStorage
+        })
+      );
   }
 
-  // Logout
-logout(): Observable<any> {
-  return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
-    tap({
-      next: () => this.clearUser(),
-      error: () => this.clearUser() // ensure local state is cleared even if request fails
-    })
-  );
-}
+  logout(): void {
+    this.clearCurrentUser();
+  }
 
-  // Expose current user as observable
+  // ---------- Current User ----------
+  private setCurrentUser(user: User) {
+    this.currentUserSubject.next(user);
+  }
+
+  private clearCurrentUser() {
+    this.currentUserSubject.next(null);
+    localStorage.removeItem('currentUser');
+  }
+
   getCurrentUser(): Observable<User | null> {
     return this.currentUser$;
   }
-
-  // Save property to user's saved list
-  saveProperty(propertyId: number): void {
-    const user = this.userSubject.value;
-    if (user && !user.savedProperties.includes(propertyId)) {
-      user.savedProperties.push(propertyId);
-      this.updateLocalUser(user);
-    }
-  }
-
-  // Update search preferences
-  updateSearchPreferences(preferences: SearchPreferences): void {
-    const user = this.userSubject.value;
-    if (user) {
-      user.searchPreferences = preferences;
-      this.updateLocalUser(user);
-    }
-  }
-
-  // Internal helper to update user state and localStorage
-  private updateLocalUser(user: User) {
-    this.userSubject.next(user);
-    localStorage.setItem('currentUser', JSON.stringify(user));
-  }
-
-  // Internal helper to clear user
-  private clearUser() {
-    this.userSubject.next(null);
-    localStorage.removeItem('currentUser');
-  }
-  getAllUsers(): Observable<User[]> {
-  return this.http.get<User[]>(`${this.apiUrl}/s`, { withCredentials: true });
-}
-
-promoteToAdmin(userId: number): Observable<void> {
-  return this.http.put<void>(`${this.apiUrl}/${userId}/promote`, {}, { withCredentials: true });
-}
-
-deleteUser(userId: number): Observable<void> {
-  return this.http.delete<void>(`${this.apiUrl}/${userId}`, { withCredentials: true });
-}
 }

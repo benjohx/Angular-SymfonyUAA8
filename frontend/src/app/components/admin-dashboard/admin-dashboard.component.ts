@@ -1,70 +1,81 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/components/admin-dashboard/admin-dashboard.component.ts
+
+import { Component, OnInit } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
-import { User } from '../../models/property.model';
+import { PropertyService } from '../../services/property.service';
+import { User } from '../../models/user.model';
+import { Property } from '../../models/property.model';
+import { firstValueFrom } from 'rxjs'; // <-- import here
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="dashboard">
-      <h2>Admin Dashboard</h2>
-      <p>Manage Users</p>
-
-      <table *ngIf="users.length; else loading">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Roles</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let user of users">
-            <td>{{ user.name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.roles.join(', ') }}</td>
-            <td>
-              <button (click)="promote(user)">Promote</button>
-              <button (click)="deleteUser(user.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <ng-template #loading>
-        <p>Loading users...</p>
-      </ng-template>
-    </div>
-  `,
-  styles: [`
-    .dashboard { padding: 2rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
-    th { background: #3498db; color: white; }
-    button { margin-right: 0.5rem; }
-  `]
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './admin-dashboard.component.html',
+  styleUrls: ['./admin-dashboard.component.scss']
 })
 export class AdminDashboardComponent implements OnInit {
   users: User[] = [];
+  properties: Property[] = [];
+  currentUser!: User | null;
 
-  constructor(private userService: UserService) {}
+   newProperty: Partial<Property> = {}; // holds form data for a new property
 
-  ngOnInit(): void {
+  constructor(
+    private userService: UserService,
+    private propertyService: PropertyService,
+    private router: Router
+  ) {}
+
+  // Replace your existing ngOnInit with this async version
+  async ngOnInit(): Promise<void> {
+    const user = await firstValueFrom(this.userService.getCurrentUser());
+
+    if (!user || !user.roles.includes('ROLE_ADMIN')) {
+      this.router.navigate(['/']); // redirect if not admin
+      return;
+    }
+
+    this.currentUser = user;
     this.loadUsers();
+    this.loadProperties();
   }
 
-  loadUsers() {
-    this.userService.getAllUsers().subscribe(users => this.users = users);
+  loadUsers(): void {
+    this.userService.getAllUsers().subscribe(data => this.users = data);
   }
 
-  promote(user: User) {
-    this.userService.promoteToAdmin(user.id).subscribe(() => this.loadUsers());
+  loadProperties(): void {
+    this.propertyService.getAllProperties().subscribe(data => this.properties = data);
   }
 
-  deleteUser(userId: number) {
-    this.userService.deleteUser(userId).subscribe(() => this.loadUsers());
+  deleteUser(id?: number): void {
+  if (!id) return; // do nothing if id is undefined
+  if(confirm('Are you sure to delete this user?')) {
+    this.userService.deleteUser(id).subscribe(() => this.loadUsers());
+  }
+}
+
+  deleteProperty(id: number): void {
+    if(confirm('Are you sure to delete this property?')) {
+      this.propertyService.deleteProperty(id).subscribe(() => this.loadProperties());
+    }
+  }
+   addProperty(): void {
+    if (!this.newProperty) return;
+
+    this.propertyService.createProperty(this.newProperty as Property).subscribe({
+      next: (created) => {
+        this.properties.push(created); // add to list
+        this.newProperty = {}; // reset form
+      },
+      error: (err) => {
+        console.error('Failed to add property', err);
+        alert('Failed to add property');
+      }
+    });
   }
 }

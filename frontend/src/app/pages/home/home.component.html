@@ -1,0 +1,21 @@
+<div class="container mt-4">
+  <h1 class="text-center mb-4">Welcome to EasyHouse</h1>
+  <p class="text-center">Find your dream property for sale or rent</p>
+
+  <div *ngIf="errorMessage" class="alert alert-danger text-center">
+    {{ errorMessage }}
+  </div>
+
+  <div class="row" *ngIf="!errorMessage">
+    <div class="col-md-4 mb-3" *ngFor="let property of featuredProperties">
+      <div class="card h-100">
+        <img [src]="property.images?.[0] || 'assets/placeholder.jpg'" class="card-img-top" alt="Property Image">
+        <div class="card-body">
+          <h5 class="card-title">{{ property.title }}</h5>
+          <p class="card-text">{{ property.location }} | ${{ property.price }}</p>
+          <a [routerLink]="['/properties', property.id]" class="btn btn-primary">View Details</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
