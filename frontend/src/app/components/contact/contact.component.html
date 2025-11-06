@@ -1,19 +1,51 @@
-<p>contact works!</p>
-<div class="container mt-4">
-  <h2>Contact Us</h2>
-  <form (ngSubmit)="sendMessage()">
-    <div class="mb-3">
-      <label>Name</label>
-      <input type="text" class="form-control" [(ngModel)]="name" name="name" required>
-    </div>
-    <div class="mb-3">
-      <label>Email</label>
-      <input type="email" class="form-control" [(ngModel)]="email" name="email" required>
-    </div>
-    <div class="mb-3">
-      <label>Message</label>
-      <textarea class="form-control" rows="5" [(ngModel)]="message" name="message" required></textarea>
-    </div>
-    <button class="btn btn-primary w-100">Send</button>
-  </form>
+<div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="card p-4 shadow-sm" style="max-width: 500px; width: 100%;">
+    <h3 class="text-center mb-4">Contact Us</h3>
+
+    <form (ngSubmit)="sendMessage()" class="needs-validation" novalidate>
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input
+          type="text"
+          id="name"
+          [(ngModel)]="name"
+          name="name"
+          class="form-control"
+          placeholder="Enter your name"
+          required
+        />
+        <div class="invalid-feedback">Please enter your name.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input
+          type="email"
+          id="email"
+          [(ngModel)]="email"
+          name="email"
+          class="form-control"
+          placeholder="Enter your email"
+          required
+        />
+        <div class="invalid-feedback">Please enter a valid email.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="message" class="form-label">Message</label>
+        <textarea
+          id="message"
+          class="form-control"
+          rows="5"
+          [(ngModel)]="message"
+          name="message"
+          placeholder="Write your message"
+          required
+        ></textarea>
+        <div class="invalid-feedback">Please enter a message.</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Send</button>
+    </form>
+  </div>
 </div>

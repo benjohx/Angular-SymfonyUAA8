@@ -10,10 +10,15 @@ import { FooterComponent } from './components/footer/footer.component';
   imports: [CommonModule, RouterOutlet, HeaderComponent, FooterComponent],
   template: `
     <app-header></app-header>
-    <main class="container mt-4">
-      <router-outlet></router-outlet>
-    </main>
-    <app-footer></app-footer>
+<div class="app-container">
+  <!-- Main content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <app-footer></app-footer>
+</div>
   `
 })
 export class AppComponent { title = 'frontend';}

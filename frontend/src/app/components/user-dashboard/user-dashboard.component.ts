@@ -6,6 +6,7 @@ import { UserService } from '../../services/user.service';
 import { PropertyService } from '../../services/property.service';
 import { User, SearchPreferences } from '../../models/user.model';
 import { Property } from '../../models/property.model';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -26,7 +27,6 @@ export class UserDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Use the logged-in user instead of hardcoded ID
     this.userService.getCurrentUser().subscribe(user => {
       if (user) {
         this.user = user;
@@ -37,20 +37,32 @@ export class UserDashboardComponent implements OnInit {
   }
 
   loadSavedProperties(): void {
-    this.savedProperties = [];
-    if (!this.user.savedProperties) return;
+    if (!this.user.savedProperties || this.user.savedProperties.length === 0) {
+      this.savedProperties = [];
+      return;
+    }
 
-    this.user.savedProperties.forEach(id => {
-      this.propertyService.getPropertyById(id).subscribe(prop => this.savedProperties.push(prop));
+    // Fetch all saved properties in parallel
+    const requests = this.user.savedProperties.map(id => this.propertyService.getPropertyById(id));
+    forkJoin(requests).subscribe({
+      next: (properties) => this.savedProperties = properties,
+      error: (err) => console.error('Failed to load saved properties', err)
     });
   }
 
   updatePreferences(): void {
-    this.user.searchPreferences = this.preferences;
     if (!this.user.id) return;
 
-    this.userService.updateUser(this.user.id, this.user).subscribe(() => {
-      alert('Preferences updated!');
+    const updatedData: Partial<User> = {
+      searchPreferences: this.preferences
+    };
+
+    this.userService.updateUser(this.user.id, updatedData).subscribe({
+      next: () => alert('Preferences updated successfully!'),
+      error: (err) => {
+        console.error('Failed to update preferences', err);
+        alert('Failed to update preferences.');
+      }
     });
   }
 }

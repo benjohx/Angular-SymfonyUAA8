@@ -1,32 +1,43 @@
-<div class="container mt-4" *ngIf="property">
-  <h2>{{ property.title }}</h2>
-  <p class="text-muted">{{ property.location }} | ${{ property.price }}</p>
+<div class="d-flex justify-content-center my-5" *ngIf="property">
+  <div class="card shadow-sm" style="max-width: 800px; width: 100%;">
+    <div class="card-body">
+      <h3 class="card-title mb-2">{{ property.title }}</h3>
+      <p class="text-muted mb-4">{{ property.location }} | ${{ property.price | number }}</p>
 
-  <div id="propertyImages" class="carousel slide mb-4" data-bs-ride="carousel">
-    <div class="carousel-inner">
-      <div class="carousel-item" *ngFor="let img of property.images; let i = index" [class.active]="i === 0">
-        <img [src]="img" class="d-block w-100" alt="Property image">
+      <!-- Carousel -->
+      <div id="propertyImages" class="carousel slide mb-4" data-bs-ride="carousel">
+        <div class="carousel-inner rounded">
+          <div 
+            class="carousel-item" 
+            *ngFor="let img of property.images; let i = index" 
+            [class.active]="i === 0"
+          >
+            <img [src]="img" class="d-block w-100" alt="Property image" style="height: 400px; object-fit: cover;">
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#propertyImages" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#propertyImages" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
       </div>
+
+      <!-- Property Info -->
+      <ul class="list-group list-group-flush mb-4">
+        <li class="list-group-item"><strong>Type:</strong> {{ property.propertyType }}</li>
+        <li class="list-group-item"><strong>Bedrooms:</strong> {{ property.bedrooms }}</li>
+        <li class="list-group-item"><strong>Bathrooms:</strong> {{ property.bathrooms }}</li>
+        <li class="list-group-item"><strong>Area:</strong> {{ property.area }} m²</li>
+        <li class="list-group-item"><strong>Contact Email:</strong> {{ property.contactEmail }}</li>
+        <li class="list-group-item"><strong>Contact Phone:</strong> {{ property.contactPhone }}</li>
+      </ul>
+
+      <p class="card-text">{{ property.description }}</p>
+
+      <a routerLink="/properties" class="btn btn-outline-secondary w-100">Back to Listings</a>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#propertyImages" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Previous</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#propertyImages" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Next</span>
-    </button>
   </div>
-
-  <p>{{ property.description }}</p>
-  <ul class="list-group mb-4">
-    <li class="list-group-item"><strong>Type:</strong> {{ property.propertyType }}</li>
-    <li class="list-group-item"><strong>Bedrooms:</strong> {{ property.bedrooms }}</li>
-    <li class="list-group-item"><strong>Bathrooms:</strong> {{ property.bathrooms }}</li>
-    <li class="list-group-item"><strong>Area:</strong> {{ property.area }} m²</li>
-    <li class="list-group-item"><strong>Contact Email:</strong> {{ property.contactEmail }}</li>
-    <li class="list-group-item"><strong>Contact Phone:</strong> {{ property.contactPhone }}</li>
-  </ul>
-
-  <a routerLink="/properties" class="btn btn-secondary">Back to Listings</a>
 </div>
